@@ -1,6 +1,6 @@
-# File Sharing System using Java Sockets 
+# File System using Java RMI 
 
-##### Alan Boyce, SWE622, Programming Assignment 1
+##### Alan Boyce, SWE622, Programming Assignment 2
 
 ##### Deliverables
 - Executable and self-contained jar file.
