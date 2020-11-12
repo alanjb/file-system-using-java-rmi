@@ -18,7 +18,7 @@ public class server {
         boolean errorAtStart = args.length != 2;
 
         System.out.println("*** Starting File System ***");
-//
+
 //        if (System.getSecurityManager() == null) {
 //
 //            System.setSecurityManager(new SecurityManager());

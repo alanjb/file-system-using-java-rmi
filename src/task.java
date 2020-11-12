@@ -4,10 +4,8 @@ import java.io.Serializable;
 import java.rmi.*;
 import java.rmi.server.*;
 
-public class task extends UnicastRemoteObject implements service, Serializable
-{
-    // Default constructor to throw RemoteException 
-    // from its parent constructor 
+public class task extends UnicastRemoteObject implements service, Serializable {
+
     public task() throws RemoteException {
         super();
     }
@@ -25,7 +23,7 @@ public class task extends UnicastRemoteObject implements service, Serializable
     }
 
     @Override
-    public synchronized boolean createDirectory(String filePathOnServer) throws RemoteException, IOException{
+    public synchronized boolean createDirectory(String filePathOnServer) throws RemoteException, IOException {
         System.out.println("Where to create this dir: " + filePathOnServer);
         String executionPath = getExecutionPathOfCurrentClient();
         boolean wasCreated = false;
