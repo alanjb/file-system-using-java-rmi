@@ -122,7 +122,7 @@ public class client implements Serializable {
 
                 case "shutdown" -> {
                     System.out.println("Shutting down server. Goodbye.");
-                    shutdown();
+                    shutdown(remoteObj);
                 }
 
                 default -> System.out.println("Please enter a valid command");
@@ -139,9 +139,9 @@ public class client implements Serializable {
         }
     }
 
-    private static void shutdown() throws IOException {
-        String command = "shutdown";
-        outToServer.writeUTF(command);
+    private static void shutdown(service remoteObj) throws IOException {
+        System.out.println("Shutting down server...");
+        remoteObj.shutdown();
     }
 
     private static void removeFile(service remoteObj, String filePathOnServer) throws IOException, FileNotFoundException {

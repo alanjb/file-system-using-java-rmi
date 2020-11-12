@@ -19,7 +19,7 @@ public class server {
 
         System.out.println("*** Starting File System ***");
 
-//        if (System.getSecurityManager() == null) {
+        //        if (System.getSecurityManager() == null) {
 //
 //            System.setSecurityManager(new SecurityManager());
 //

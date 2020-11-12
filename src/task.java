@@ -84,7 +84,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     @Override
-    public synchronized boolean removeDirectory(String existingFilePathOnServer) throws IOException {
+    public synchronized boolean removeDirectory(String existingFilePathOnServer) throws RemoteException, IOException {
         String executionPath = getExecutionPathOfCurrentClient();
         boolean wasRemoved = false;
 
@@ -114,7 +114,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     @Override
-    public synchronized String[] listDirectoryItems(String existingFilePathOnServer) throws IOException {
+    public synchronized String[] listDirectoryItems(String existingFilePathOnServer) throws RemoteException, IOException {
 
         File serverPathDirectory = new File(existingFilePathOnServer);
 
@@ -127,5 +127,11 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         }
 
         return serverPathDirectory.list();
+    }
+
+    @Override
+    public synchronized void shutdown()throws RemoteException, IOException {
+        System.out.println("Terminating program...goodbye.");
+        System.exit(0);
     }
 }

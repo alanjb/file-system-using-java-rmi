@@ -4,6 +4,7 @@ import java.rmi.*;
 
 public interface service extends Remote
 {
+    void shutdown() throws RemoteException, IOException;
     boolean createDirectory(String filePathOnServer) throws RemoteException, IOException;
     boolean removeFile(String existingFilePathOnServer) throws RemoteException, IOException;
     boolean removeDirectory(String existingFilePathOnServer) throws RemoteException, IOException;
