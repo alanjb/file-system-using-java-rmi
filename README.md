@@ -33,12 +33,12 @@ Change directories out of the server and create a new 'client1' directory.
 Run the following command so clients know how to contact the server.
 
   ```bash
-  export PA1_SERVER=localhost:8000
+  export PA2_SERVER=localhost:8000
   ```
 
 For Windows machines, run this command instead.
   ```bash
-  set PA1_SERVER=localhost:8000
+  set PA2_SERVER=localhost:8000
   ```
 Add the pa1.jar file into the client directory. 
 

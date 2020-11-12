@@ -1,36 +1,66 @@
 import java.io.*;
 import java.net.*;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
-public class client {
+public class client implements Serializable {
     private static DataInputStream inFromServer = null;
     private static DataOutputStream outToServer = null;
     private static Socket clientSocket = null;
 
     public static void main(String[] args) throws IOException {
-        String serverName = System.getenv("PA1_SERVER");
 
-        if (serverName != null) {
-            try {
-                String[] vars = System.getenv("PA1_SERVER").split(":");
-                String server = vars[0];
-                int port = Integer.parseInt(vars[1]);
+        String serverName = System.getenv("PA2_SERVER");
 
-                init(server, port, args);
-            } catch (Exception error) {
-                System.out.println("ERROR: Cannot connect to Server" + error.getMessage());
+        System.out.println("Server name: " + serverName);
+
+        try {
+
+            if (serverName != null) {
+
+                String[] vars = System.getenv("PA2_SERVER").split(":");
+
+                String hostName = vars[0];
+
+                int portNumber = Integer.parseInt(vars[1]);
+
+                if(hostName.equalsIgnoreCase("localhost") && portNumber == 8000){
+
+                    System.out.println("Correct values...");
+
+                    Registry registry = LocateRegistry.getRegistry(hostName, portNumber);
+
+                    System.out.println("test...");
+
+                    service stub = (service)registry.lookup("remoteObject");
+
+                    System.out.println("test2...");
+
+                    init(stub, hostName, portNumber, args);
+
+                } else {
+
+                    System.out.println("Wrong parameters entered. Please try again.");
+
+                    System.exit(1);
+
+                }
+            } else {
+                System.out.println("PA1_SERVER environment variable not set...");
             }
-        } else {
-            System.out.println("PA1_SERVER environment variable not set...");
+        }
+        catch (Exception error) {
+            System.out.println("ERROR: Cannot connect to Server" + error.getMessage());
         }
     }
 
-    private static void init(String server, int port, String[] args) {
+    private static void init(service remoteObj, String server, int port, String[] args) {
         try {
             clientSocket = new Socket(server, port);
 
             initStreams();
 
-            runCommand(args);
+            runCommand(remoteObj, args);
 
         } catch (Exception error) {
             System.out.println("503 Service Unavailable: there was an issue connecting to the server: " + error);
@@ -55,7 +85,7 @@ public class client {
         outToServer = new DataOutputStream(clientSocket.getOutputStream());
     }
 
-    private static void runCommand(String[] args) throws IOException {
+    private static void runCommand(service remoteObj, String[] args) throws IOException {
         String userCommand = args[0];
 
         try {
@@ -72,22 +102,22 @@ public class client {
 
                 case "dir" -> {
                     System.out.println("List: Calling server to retrieve directory items...");
-                    dir(args[1]);
+                    dir(remoteObj, args[1]);
                 }
 
                 case "mkdir" -> {
                     System.out.println("Create Directory: Calling server to remove file...");
-                    mkdir(args[1]);
+                    mkdir(remoteObj, args[1]);
                 }
 
                 case "rmdir" -> {
                     System.out.println("Remove Directory: Calling server to remove file...");
-                    rmdir(args[1]);
+                    rmdir(remoteObj, args[1]);
                 }
 
                 case "rm" -> {
                     System.out.println("Remove file: Calling server to remove file...");
-                    removeFile(args[1]);
+                    removeFile(remoteObj, args[1]);
                 }
 
                 case "shutdown" -> {
@@ -114,16 +144,9 @@ public class client {
         outToServer.writeUTF(command);
     }
 
-    private static void removeFile(String filePathOnServer) throws IOException, FileNotFoundException {
-        String command = "rm";
+    private static void removeFile(service remoteObj, String filePathOnServer) throws IOException, FileNotFoundException {
 
-        //send command to server
-        outToServer.writeUTF(command);
-
-        //send file path to server
-        outToServer.writeUTF(filePathOnServer);
-
-        boolean fileExists = inFromServer.readBoolean();
+        boolean fileExists = remoteObj.removeFile(filePathOnServer);
 
         try {
             //if file exists on server
@@ -297,25 +320,17 @@ public class client {
         }
     }
 
-    private static void rmdir(String filePathOnServer) throws IOException {
-        String command = "rmdir";
+    private static void rmdir(service remoteObj, String filePathOnServer) throws IOException {
 
         try {
             System.out.println("Sending request to remove directory ...");
 
-            outToServer.writeUTF(command);
-            outToServer.writeUTF(filePathOnServer);
+            boolean wasRemoved = remoteObj.removeDirectory(filePathOnServer);
 
-            if(inFromServer.readBoolean()){
+            if(wasRemoved){
                 System.out.println("SUCCESS! The directory was removed at..." + filePathOnServer);
             } else {
-                int errorCode = inFromServer.readInt();
-
-                if(errorCode == 1){
-                    System.err.println("404 ERROR: Directory contains items so it cannot be removed. Please try again");
-                } else if(errorCode == 2){
-                    System.err.println("404 ERROR: Directory does not exist on server. Please try again.");
-                }
+                System.err.println("404 ERROR: Directory could not be removed. Please try again");
             }
         } catch(Exception e){
             System.err.println("404 ERROR: There was an error trying to remove the directory.");
@@ -323,47 +338,40 @@ public class client {
         }
     }
 
-    private static void dir(String filePathOnServer) {
-        String command = "dir";
+    private static void dir(service remoteObj, String filePathOnServer) {
 
         try {
             System.out.println("Retrieving directory items...");
 
-            outToServer.writeUTF(command);
+            //call remoteObj listDirectoryItems method
+            String[] list = remoteObj.listDirectoryItems(filePathOnServer);
 
-            outToServer.writeUTF(filePathOnServer);
+            System.out.println("Directory items in " + filePathOnServer + ": \n");
 
-            if(inFromServer.readBoolean()) {
-                System.out.println("Directory items in " + filePathOnServer + ": \n");
-                System.out.println(inFromServer.readUTF());
-            } else {
-                System.out.println("404 ERROR: directory does not exist. Please try again.");
+            for (String s : list) {
+                System.out.println(s);
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static void mkdir(String filePathOnServer) throws IOException {
-        String command = "mkdir";
+    private static void mkdir(service remoteObj, String filePathOnServer) throws IOException {
 
         try {
+
             System.out.println("Sending directory creation request to server...");
 
-            outToServer.writeUTF(command);
-            outToServer.writeUTF(filePathOnServer);
+            boolean wasRemoved = remoteObj.createDirectory(filePathOnServer);
 
-            if (inFromServer.readBoolean()) {
+            if (wasRemoved) {
+
                 System.out.println("Successfully created directory at: " + filePathOnServer);
+
             } else {
 
-                int errorCode = inFromServer.readInt();
-
-                if(errorCode == 1){
-                    System.out.println("400 ERROR: Couldn't create directory at: " + filePathOnServer + " because it already exists. Please try again.");
-                } else {
-                    System.out.println("400 ERROR: Couldn't create directory at: " + filePathOnServer + ". Please try again.");
-                }
+                System.out.println("400 ERROR: There was an issue creating directory at: " + filePathOnServer + ".  Please try again.");
             }
         } catch (Exception e) {
             System.out.println("ERROR: " + e.getMessage());
