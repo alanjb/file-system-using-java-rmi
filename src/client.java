@@ -163,8 +163,6 @@ public class client implements Serializable {
                 System.out.println("Starting a new upload for file: " + fileName);
             }
 
-            boolean wasUploaded = remoteObj.upload(fileName, clientName, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
-
             int read = 0;
             int remaining = Math.toIntExact(fileSize);
             byte[] buffer = new byte[1024];
@@ -176,7 +174,13 @@ public class client implements Serializable {
                         "\r Uploading file..."
                         + (int)((double)(filePosition)/fileSize * 100)
                         + "%");
-                remoteObj.write(buffer);
+
+                //need to figure out what to do with filePos
+                boolean bufferUploadedToServer = remoteObj.upload(buffer, fileName, clientName, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
+
+                if(!bufferUploadedToServer){
+                    System.out.println("Server failed to upload all buffers.");
+                }
             }
 
             if(filePosition >= fileSize){
@@ -184,10 +188,6 @@ public class client implements Serializable {
                         "\r Uploading file...100%"
                 );
                 System.out.println("\n\n File Upload Complete");
-            }
-
-            if(!wasUploaded){
-                System.out.println("THERE WAS AN ERROR ON THE SERVER UPLOADING THE FILE. PLEASE TRY AGAIN.");
             }
 
             raf.close();

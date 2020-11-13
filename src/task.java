@@ -262,9 +262,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         return pos;
     }
 
-    public synchronized boolean upload(String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner) throws RemoteException, IOException {
-
-        boolean finishedUploaded = false;
+    public synchronized boolean upload(byte[] buffer, String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner) throws RemoteException, IOException {
 
         String executionPath = System.getProperty("user.dir");
 
@@ -272,71 +270,36 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
         FileInputStream fis = new FileInputStream(file);
 
-        DataInputStream dis = new DataInputStream(fis);
+        //need to check if file already exists after first buffer upload
 
-        try {
+        int read = 0;
 
-            RandomAccessFile raf = new RandomAccessFile(file, "rw");
+        long filePosition = 0;
 
-            System.out.println("Random access file created");
+        int remaining = Math.toIntExact(fileSize);
 
-            synchronized(raf) {
+        long filePos = file.length();
 
-                //write here
+        try (DataInputStream dis = new DataInputStream(fis); RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
 
-
-                try {
-                    byte[] buffer = new byte[1024];
-                    int read = 0;
-                    long filePosition = 0;
-                    int remaining = Math.toIntExact(fileSize);
-                    long filePos = file.length();
-
-                    FileLock lock = raf.getChannel().lock();
-
-                    try {
-                        if(fileExistsAndClientIsOwner){
-                            raf.seek(filePos);
-                            filePosition = filePos;
-                        }
-
-                        while((read = dis.read(buffer, 0, Math.min(buffer.length, remaining))) > 0) {
-
-                            filePosition += read;
-                            remaining -= read;
-                            System.out.print(
-                                    "\r Downloading file..." +
-                                            (int)((double)(filePosition)/fileSize * 100) +
-                                            "%");
-                            raf.write(buffer, 0, read);
-
-                        }
-
-                        if(filePosition >= fileSize){
-                            System.out.println("\n File Download Complete");
-                            //remove from hashmap since the file completed
-                            removeFromHashMap(filePathOnServer, clientName);
-
-                            finishedUploaded = true;
-                        } else {
-                            System.out.println("\n There was an interruption when uploading file. Please retry to complete.");
-                        }
-                    } catch(Exception e){
-                        System.out.println("\n Something went wrong as the client was uploading a file.");
-                        e.printStackTrace();
-                    } finally {
-                        lock.release();
-                        raf.close();
-                    }
-                } catch (Exception e) {
-                    System.out.println("An error occurred attempting to receive file on server.");
-                    e.printStackTrace();
-                } finally {
-                    dos.flush();
-                    dis.close();
-                }
+            if (fileExistsAndClientIsOwner) {
+                raf.seek(filePos);
+                filePosition = filePos;
             }
-        } catch(Exception e){
+
+            while ((read = dis.read(buffer, 0, Math.min(buffer.length, remaining))) > 0) {
+                filePosition += read;
+                remaining -= read;
+                System.out.print(
+                    "\r Receiving file from client..." +
+                            (int) ((double) (filePosition) / fileSize * 100) +
+                            "%");
+                raf.write(buffer, 0, read);
+            }
+
+        } catch (Exception e) {
+
+            System.out.println("\n Something went wrong as the client was uploading a file.");
             e.printStackTrace();
         }
 
