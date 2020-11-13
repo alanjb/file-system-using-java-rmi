@@ -4,8 +4,11 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 public class client implements Serializable {
+
     private static DataInputStream inFromServer = null;
+
     private static DataOutputStream outToServer = null;
+
     private static Socket clientSocket = null;
 
     public static void main(String[] args) throws IOException {

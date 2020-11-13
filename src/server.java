@@ -7,8 +7,6 @@ import java.rmi.registry.Registry;
 
 public class server {
 
-    private static ServerSocket serverSocket = null;
-
     protected server(String name) throws RemoteException {
 
         super();
@@ -37,6 +35,8 @@ public class server {
             Socket clientSocket = null;
 
             int port = Integer.parseInt(serverPortNumber);
+
+            ServerSocket serverSocket = new ServerSocket(port);
 
             if (errorAtStart) {
 
