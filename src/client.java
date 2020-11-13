@@ -86,7 +86,7 @@ public class client implements Serializable {
             switch (userCommand) {
                 case "upload" -> {
                     System.out.println("Upload: Sending file to server...");
-                    upload(args[1], args[2]);
+                    upload(remoteObj, args[1], args[2]);
                 }
 
                 case "download" -> {
@@ -155,39 +155,25 @@ public class client implements Serializable {
         }
     }
 
-    private static void upload(String filePathOnClient, String filePathOnServer) throws IOException {
-        String command = "upload";
+    private static void upload(service remoteObj, String filePathOnClient, String filePathOnServer) throws IOException {
         String executionPathOnClient = getExecutionPathOfCurrentClient();
         File file = new File(executionPathOnClient + File.separator + filePathOnClient);
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         long filePosition = 0;
-
         long fileSize = file.length();
         String fileName = file.getName();
+        String clientName = getExecutionPathOfCurrentClient();
 
         try {
-            //send command to server
-            outToServer.writeUTF(command);
-            System.out.println("Sending command type to server: " + command);
 
-            //send file name to server
-            outToServer.writeUTF(fileName);
-            System.out.println("Sending file name: " + file.getName());
+            boolean fileExistsAndClientIsOwner = remoteObj.handleFileCheck(fileName, clientName, filePathOnServer, fileSize);
 
-            //send client name to server
-            String clientName = getExecutionPathOfCurrentClient();
-            outToServer.writeUTF(clientName);
-            System.out.println("Sending client's name to keep track in case of crash" + file.getName());
+            long filePos = remoteObj.handlePrepareUpload(fileName, clientName, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
 
-            //send path on server
-            outToServer.writeUTF(filePathOnServer);
-            System.out.println("Sending file path on server: " + filePathOnServer);
+            boolean wasUploaded = remoteObj.upload(fileName, clientName, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
 
-            //send file size to server
-            outToServer.writeLong(fileSize);
-            System.out.println("Sending file size: " + fileSize);
+            if(filePos > 0){
 
-            if(inFromServer.readBoolean()){
                 System.out.println("Resuming upload for file: " + fileName);
 
                 long position = inFromServer.readLong();
@@ -195,7 +181,9 @@ public class client implements Serializable {
                 System.out.println("File position: " + position);
 
                 raf.seek(position);
+
                 filePosition = position;
+
             } else {
                 System.out.println("Starting a new upload for file: " + fileName);
             }
@@ -203,7 +191,6 @@ public class client implements Serializable {
             int read = 0;
             int remaining = Math.toIntExact(fileSize);
             byte[] buffer = new byte[1024];
-
 
             while((read = raf.read(buffer, 0, Math.min(buffer.length, remaining))) > 0){
                 filePosition += read;
@@ -220,6 +207,10 @@ public class client implements Serializable {
                         "\r Uploading file...100%"
                 );
                 System.out.println("\n\n File Upload Complete");
+            }
+
+            if(!wasUploaded){
+                System.out.println("THERE WAS AN ERROR ON THE SERVER UPLOADING THE FILE. PLEASE TRY AGAIN.");
             }
 
             raf.close();
