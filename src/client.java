@@ -26,15 +26,9 @@ public class client implements Serializable {
 
                 if(hostName.equalsIgnoreCase("localhost") && portNumber == 8000){
 
-                    System.out.println("Correct values...");
-
                     Registry registry = LocateRegistry.getRegistry(hostName, portNumber);
 
-                    System.out.println("test...");
-
                     service stub = (service)registry.lookup("remoteObject");
-
-                    System.out.println("test2...");
 
                     init(stub, hostName, portNumber, args);
 
