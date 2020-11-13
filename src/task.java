@@ -263,6 +263,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     public synchronized boolean upload(String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner) throws RemoteException, IOException {
+
         boolean finishedUploaded = false;
 
         String executionPath = System.getProperty("user.dir");
@@ -280,6 +281,10 @@ public class task extends UnicastRemoteObject implements service, Serializable {
             System.out.println("Random access file created");
 
             synchronized(raf) {
+
+                //write here
+
+
                 try {
                     byte[] buffer = new byte[1024];
                     int read = 0;
@@ -296,6 +301,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
                         }
 
                         while((read = dis.read(buffer, 0, Math.min(buffer.length, remaining))) > 0) {
+
                             filePosition += read;
                             remaining -= read;
                             System.out.print(

@@ -1,15 +1,8 @@
 import java.io.*;
-import java.net.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 public class client implements Serializable {
-
-    private static DataInputStream inFromServer = null;
-
-    private static DataOutputStream outToServer = null;
-
-    private static Socket clientSocket = null;
 
     public static void main(String[] args) throws IOException {
 
@@ -41,10 +34,12 @@ public class client implements Serializable {
 
                 }
             } else {
+
                 System.out.println("PA1_SERVER environment variable not set...");
             }
         }
         catch (Exception error) {
+
             System.out.println("ERROR: Cannot connect to Server" + error.getMessage());
         }
     }
@@ -74,7 +69,7 @@ public class client implements Serializable {
 
                 case "download" -> {
                     System.out.println("Download: Calling server to retrieve file...");
-                    download(args[1], args[2]);
+                    //download(args[1], args[2]);
                 }
 
                 case "dir" -> {
@@ -107,12 +102,6 @@ public class client implements Serializable {
 
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (clientSocket != null) {
-                clientSocket.close();
-                inFromServer.close();
-                outToServer.close();
-            }
         }
     }
 
@@ -160,8 +149,6 @@ public class client implements Serializable {
 
             long filePos = remoteObj.handlePrepareUpload(fileName, clientName, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
 
-            boolean wasUploaded = remoteObj.upload(fileName, clientName, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
-
             if(filePos > 0){
 
                 System.out.println("Resuming upload for file: " + fileName);
@@ -176,6 +163,8 @@ public class client implements Serializable {
                 System.out.println("Starting a new upload for file: " + fileName);
             }
 
+            boolean wasUploaded = remoteObj.upload(fileName, clientName, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
+
             int read = 0;
             int remaining = Math.toIntExact(fileSize);
             byte[] buffer = new byte[1024];
@@ -187,7 +176,7 @@ public class client implements Serializable {
                         "\r Uploading file..."
                         + (int)((double)(filePosition)/fileSize * 100)
                         + "%");
-                outToServer.write(buffer);
+                remoteObj.write(buffer);
             }
 
             if(filePosition >= fileSize){
@@ -205,90 +194,6 @@ public class client implements Serializable {
 
         } catch(Exception e){
             System.out.println("There was an interruption when uploading file. Please retry to complete \n.");
-            e.printStackTrace();
-        }
-    }
-
-    private static void download(String filePathOnServer, String filePathOnClient) throws IOException {
-        String command = "download";
-        String executionPath = getExecutionPathOfCurrentClient();
-
-        //send command to server
-        outToServer.writeUTF(command);
-
-        //send file path to server
-        outToServer.writeUTF(filePathOnServer);
-
-        //get file size to compare
-        long fileSizeOfFileOnServer = inFromServer.readLong();
-
-        long filePosition = 0;
-
-        boolean shouldResumeDownload = false;
-
-        try {
-            if(inFromServer.readBoolean()) {
-                System.out.println("File exists on server...");
-
-                File file = new File(executionPath + File.separator +  filePathOnClient);
-
-                if(file.exists() && (file.length() < fileSizeOfFileOnServer)){
-                    outToServer.writeBoolean(true);
-
-                    long filePositionForSeek = file.length();
-
-                    outToServer.writeLong(filePositionForSeek);
-
-                    filePosition = filePositionForSeek;
-
-                    System.out.println("Resuming download for: " + file.getName());
-
-                    shouldResumeDownload = true;
-
-                } else {
-                    outToServer.writeBoolean(false);
-                }
-
-                try {
-                    byte[] buffer = new byte[1024];
-                    int read = 0;
-                    int remaining = Math.toIntExact(fileSizeOfFileOnServer);
-                    RandomAccessFile raf = new RandomAccessFile(file, "rw");
-
-                    if(shouldResumeDownload){
-                        raf.seek(filePosition);
-                    }
-
-                    while ((read = inFromServer.read(buffer, 0, Math.min(buffer.length, remaining))) > 0) {
-                        filePosition += read;
-                        remaining -= read;
-                        System.out.print(
-                                "\r Downloading file..." +
-                                        (int) ((double) (filePosition) / fileSizeOfFileOnServer * 100) +
-                                        "%");
-                        raf.write(buffer, 0, read);
-                    }
-
-                    if (filePosition >= fileSizeOfFileOnServer) {
-                        System.out.println("\n File Download Complete");
-                        //remove from hashmap since the file completed
-                    } else {
-                        System.out.println("\n There was an interruption when uploading file. Please retry to complete.");
-                    }
-
-                    raf.close();
-
-                } catch (Exception e) {
-                    System.out.println("\n Something went wrong as the client was uploading a file.");
-                    e.printStackTrace();
-                }
-
-            } else {
-                System.out.println("404 ERROR. The file you requested to download does not exist on server.");
-            }
-
-        } catch (Exception e) {
-            System.out.println("An error occurred attempting to receive file on server.");
             e.printStackTrace();
         }
     }
