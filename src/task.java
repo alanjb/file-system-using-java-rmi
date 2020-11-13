@@ -52,8 +52,6 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
         boolean fileCreated = storageFile.createNewFile();
 
-        System.out.println("Storage File Now Created: " + fileCreated);
-
         try {
             //needs to be synchronized because we don't want more than one thread trying to create this file
             synchronized (storageFile){
@@ -213,10 +211,6 @@ public class task extends UnicastRemoteObject implements service, Serializable {
             e.printStackTrace();
         }
 
-
-
-        System.out.println("DOES THE FILE EXIST IN THE HASHMAP: " + unfinishedFileExistsForCurrentClient);
-
         return unfinishedFileExistsForCurrentClient;
     }
 
@@ -264,6 +258,8 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
     public synchronized boolean upload(byte[] buffer, String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner) throws RemoteException, IOException {
 
+        boolean finishedUploaded = false;
+
         String executionPath = System.getProperty("user.dir");
 
         File file = new File(executionPath + File.separator + filePathOnServer);
@@ -295,6 +291,9 @@ public class task extends UnicastRemoteObject implements service, Serializable {
                             (int) ((double) (filePosition) / fileSize * 100) +
                             "%");
                 raf.write(buffer, 0, read);
+
+                finishedUploaded = true;
+
             }
 
         } catch (Exception e) {
