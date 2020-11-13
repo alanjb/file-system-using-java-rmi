@@ -1,5 +1,4 @@
 import java.io.*;
-import java.net.Socket;
 import java.nio.channels.FileLock;
 import java.rmi.*;
 import java.rmi.server.*;
@@ -8,16 +7,8 @@ import java.util.Map;
 
 public class task extends UnicastRemoteObject implements service, Serializable {
 
-    final DataInputStream dis;
-    final DataOutputStream dos;
-    final Socket clientSocket;
-
-    public task(Socket clientSocket, DataInputStream inFromClient, DataOutputStream outFromClient) throws RemoteException {
+    public task() throws RemoteException {
         super();
-
-        this.dis = inFromClient;
-        this.dos = outFromClient;
-        this.clientSocket = clientSocket;
     }
 
     private static String getExecutionPathOfCurrentClient(){
@@ -274,11 +265,15 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     public synchronized boolean upload(String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner) throws RemoteException, IOException {
         boolean finishedUploaded = false;
 
+        String executionPath = System.getProperty("user.dir");
+
+        File file = new File(executionPath + File.separator + filePathOnServer);
+
+        FileInputStream fis = new FileInputStream(file);
+
+        DataInputStream dis = new DataInputStream(fis);
+
         try {
-
-            String executionPath = System.getProperty("user.dir");
-
-            File file = new File(executionPath + File.separator + filePathOnServer);
 
             RandomAccessFile raf = new RandomAccessFile(file, "rw");
 

@@ -15,8 +15,6 @@ public class client implements Serializable {
 
         String serverName = System.getenv("PA2_SERVER");
 
-        System.out.println("Server name: " + serverName);
-
         try {
 
             if (serverName != null) {
@@ -33,7 +31,7 @@ public class client implements Serializable {
 
                     service stub = (service)registry.lookup("remoteObject");
 
-                    init(stub, hostName, portNumber, args);
+                    runCommand(stub, args);
 
                 } else {
 
@@ -51,19 +49,6 @@ public class client implements Serializable {
         }
     }
 
-    private static void init(service remoteObj, String server, int port, String[] args) {
-        try {
-            clientSocket = new Socket(server, port);
-
-            initStreams();
-
-            runCommand(remoteObj, args);
-
-        } catch (Exception error) {
-            System.out.println("503 Service Unavailable: there was an issue connecting to the server: " + error);
-        }
-    }
-
     private static String getExecutionPathOfCurrentClient(){
         String executionPath = null;
 
@@ -75,11 +60,6 @@ public class client implements Serializable {
         }
 
         return executionPath;
-    }
-
-    private static void initStreams() throws IOException {
-        inFromServer = new DataInputStream(clientSocket.getInputStream());
-        outToServer = new DataOutputStream(clientSocket.getOutputStream());
     }
 
     private static void runCommand(service remoteObj, String[] args) throws IOException {
@@ -159,12 +139,19 @@ public class client implements Serializable {
     }
 
     private static void upload(service remoteObj, String filePathOnClient, String filePathOnServer) throws IOException {
+
         String executionPathOnClient = getExecutionPathOfCurrentClient();
+
         File file = new File(executionPathOnClient + File.separator + filePathOnClient);
+
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
+
         long filePosition = 0;
+
         long fileSize = file.length();
+
         String fileName = file.getName();
+
         String clientName = getExecutionPathOfCurrentClient();
 
         try {
@@ -179,13 +166,11 @@ public class client implements Serializable {
 
                 System.out.println("Resuming upload for file: " + fileName);
 
-                long position = inFromServer.readLong();
+                System.out.println("File position: " + filePos);
 
-                System.out.println("File position: " + position);
+                raf.seek(filePos);
 
-                raf.seek(position);
-
-                filePosition = position;
+                filePosition = filePos;
 
             } else {
                 System.out.println("Starting a new upload for file: " + fileName);

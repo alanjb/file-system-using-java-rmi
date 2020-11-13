@@ -1,18 +1,12 @@
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 public class server {
 
-    protected server(String name) throws RemoteException {
-
+    protected server() throws RemoteException {
         super();
-
-        System.out.println(name + " server created");
-
     }
 
     public static void main(String[] args) throws IOException {
@@ -21,45 +15,36 @@ public class server {
 
         System.out.println("*** Starting File System ***");
 
-        //        if (System.getSecurityManager() == null) {
-//
-//            System.setSecurityManager(new SecurityManager());
-//
-//        }
+        String serverPortNumber = args[1];
 
-        try {
+        int port = Integer.parseInt(serverPortNumber);
 
-            String serverPortNumber = args[1];
+        if (errorAtStart) {
 
-            //new socket creation here
-            Socket clientSocket = null;
+            System.out.println("ERROR: You must enter two arguments - 'start' and a port number" + "\n");
 
-            int port = Integer.parseInt(serverPortNumber);
+            System.exit(1);
 
-            ServerSocket serverSocket = new ServerSocket(port);
-
-            if (errorAtStart) {
-
-                System.out.println("ERROR: You must enter two arguments - 'start' and a port number" + "\n");
-
-                System.exit(1);
-            }
+        } else {
 
             if (args[0].equalsIgnoreCase("start") && port == 8000) {
 
-                clientSocket = serverSocket.accept();
+                try {
 
-                DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
+                    task remoteObject = new task();
 
-                DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
+                    Registry registry = LocateRegistry.createRegistry(port);
 
-                task remoteObject = new task(clientSocket, dis, dos);
+                    registry.rebind("remoteObject", remoteObject);
 
-                Registry registry = LocateRegistry.createRegistry(port);
+                    System.err.println("Server added to registry on port " + port + " and listening to requests...");
 
-                registry.rebind("remoteObject", remoteObject);
+                } catch (Exception e) {
 
-                System.err.println("Server added to registry and listening on port " + port);
+                    System.out.println("Server failed to start: " + "\n\n");
+
+                    e.printStackTrace();
+                }
 
             } else {
 
@@ -67,12 +52,6 @@ public class server {
 
                 System.exit(1);
             }
-
-        } catch(RemoteException e) {
-
-            System.err.println("Server failed to register and start...");
-
-            e.printStackTrace();
         }
     }
 }
