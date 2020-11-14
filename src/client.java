@@ -220,18 +220,21 @@ public class client implements Serializable {
     private static void dir(service remoteObj, String filePathOnServer) {
 
         try {
+
             System.out.println("Retrieving directory items...");
 
             //call remoteObj listDirectoryItems method
             String[] list = remoteObj.listDirectoryItems(filePathOnServer);
 
-            System.out.println("Directory items in " + filePathOnServer + ": \n");
+            System.out.println("Directory items in " + filePathOnServer + ": \n\n");
 
             for (String s : list) {
+
                 System.out.println(s);
             }
 
         } catch (Exception e) {
+
             e.printStackTrace();
         }
     }
