@@ -201,12 +201,18 @@ public class client implements Serializable {
             boolean wasRemoved = remoteObj.removeDirectory(filePathOnServer);
 
             if(wasRemoved){
+
                 System.out.println("SUCCESS! The directory was removed at..." + filePathOnServer);
+
             } else {
+
                 System.err.println("404 ERROR: Directory could not be removed. Please try again");
             }
+
         } catch(Exception e){
+
             System.err.println("404 ERROR: There was an error trying to remove the directory.");
+
             e.printStackTrace();
         }
     }
