@@ -38,6 +38,7 @@ public class client implements Serializable {
                 System.out.println("PA1_SERVER environment variable not set...");
             }
         }
+
         catch (Exception error) {
 
             System.out.println("ERROR: Cannot connect to Server" + error.getMessage());
@@ -45,12 +46,17 @@ public class client implements Serializable {
     }
 
     private static String getExecutionPathOfCurrentClient(){
+
         String executionPath = null;
 
         try {
+
             executionPath = System.getProperty("user.dir");
+
         } catch(Exception e){
+
             System.out.println("There was an error getting execution for this system.");
+
             e.printStackTrace();
         }
 
@@ -61,39 +67,55 @@ public class client implements Serializable {
         String userCommand = args[0];
 
         try {
+
             switch (userCommand) {
+
                 case "upload" -> {
+
                     System.out.println("Upload: Sending file to server...");
+
                     upload(remoteObj, args[1], args[2]);
                 }
 
                 case "download" -> {
+
                     System.out.println("Download: Calling server to retrieve file...");
-                    //download(args[1], args[2]);
+
+                    //download(remoteObj, args[1], args[2]);
                 }
 
                 case "dir" -> {
+
                     System.out.println("List: Calling server to retrieve directory items...");
+
                     dir(remoteObj, args[1]);
                 }
 
                 case "mkdir" -> {
+
                     System.out.println("Create Directory: Calling server to remove file...");
+
                     mkdir(remoteObj, args[1]);
                 }
 
                 case "rmdir" -> {
+
                     System.out.println("Remove Directory: Calling server to remove file...");
+
                     rmdir(remoteObj, args[1]);
                 }
 
                 case "rm" -> {
+
                     System.out.println("Remove file: Calling server to remove file...");
+
                     removeFile(remoteObj, args[1]);
                 }
 
                 case "shutdown" -> {
-                    System.out.println("Shutting down server. Goodbye.");
+
+                    System.out.println("Shutting down server. Goodbye!");
+
                     shutdown(remoteObj);
                 }
 
@@ -101,12 +123,15 @@ public class client implements Serializable {
             }
 
         } catch (Exception e) {
+
             e.printStackTrace();
         }
     }
 
     private static void shutdown(service remoteObj) throws IOException {
+
         System.out.println("Shutting down server...");
+
         remoteObj.shutdown();
     }
 
@@ -256,6 +281,7 @@ public class client implements Serializable {
                 System.out.println("400 ERROR: There was an issue creating directory at: " + filePathOnServer + ".  Please try again.");
             }
         } catch (Exception e) {
+
             System.out.println("ERROR: " + e.getMessage());
         }
     }
