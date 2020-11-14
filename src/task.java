@@ -257,7 +257,6 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     public synchronized boolean upload(byte[] buffer, String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner, int count) throws RemoteException, IOException {
-        System.out.println("Count: " + count);
 
         String executionPath = System.getProperty("user.dir");
 
@@ -266,6 +265,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
 
         try {
+
             raf.seek(1024 * count);
             raf.write(buffer);
 
