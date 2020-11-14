@@ -176,7 +176,6 @@ public class client implements Serializable {
 
                 remoteObj.upload(buffer, fileName, executionPathOnClient, filePathOnServer, fileSize, fileExistsAndClientIsOwner, count);
                 count++;
-                System.out.println("Count: " + count);
             }
 
             if(filePosition >= fileSize){
