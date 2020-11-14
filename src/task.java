@@ -267,11 +267,13 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         try {
 
             raf.seek(1024 * count);
+
             raf.write(buffer);
 
         } catch (Exception e) {
 
             System.out.println("\n Something went wrong as the client was uploading a file.");
+
             e.printStackTrace();
         }
 

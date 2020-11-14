@@ -183,23 +183,31 @@ public class client implements Serializable {
                 filePosition = filePos;
 
             } else {
+
                 System.out.println("Starting a new upload for file: " + fileName);
             }
 
             int read = 0;
+
             int remaining = Math.toIntExact(fileSize);
+
             byte[] buffer = new byte[1024];
+
             int count = 0;
 
             while((read = raf.read(buffer, 0, Math.min(buffer.length, remaining))) > 0){
+
                 filePosition += read;
+
                 remaining -= read;
+
                 System.out.print(
                         "\r Uploading file..."
                         + (int)((double)(filePosition)/fileSize * 100)
                         + "%");
 
                 remoteObj.upload(buffer, fileName, executionPathOnClient, filePathOnServer, fileSize, fileExistsAndClientIsOwner, count);
+
                 count++;
             }
 
