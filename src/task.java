@@ -256,45 +256,18 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         return pos;
     }
 
-    public synchronized boolean upload(byte[] buffer, String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner) throws RemoteException, IOException {
-
-        boolean finishedUploaded = false;
+    public synchronized boolean upload(byte[] buffer, String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner, int count) throws RemoteException, IOException {
+        System.out.println("Count: " + count);
 
         String executionPath = System.getProperty("user.dir");
 
         File file = new File(executionPath + File.separator + filePathOnServer);
 
-        FileInputStream fis = new FileInputStream(file);
+        RandomAccessFile raf = new RandomAccessFile(file, "rw");
 
-        //need to check if file already exists after first buffer upload
-
-        int read = 0;
-
-        long filePosition = 0;
-
-        int remaining = Math.toIntExact(fileSize);
-
-        long filePos = file.length();
-
-        try (DataInputStream dis = new DataInputStream(fis); RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
-
-            if (fileExistsAndClientIsOwner) {
-                raf.seek(filePos);
-                filePosition = filePos;
-            }
-
-            while ((read = dis.read(buffer, 0, Math.min(buffer.length, remaining))) > 0) {
-                filePosition += read;
-                remaining -= read;
-                System.out.print(
-                    "\r Receiving file from client..." +
-                            (int) ((double) (filePosition) / fileSize * 100) +
-                            "%");
-                raf.write(buffer, 0, read);
-
-                finishedUploaded = true;
-
-            }
+        try {
+            raf.seek(1024 * count);
+            raf.write(buffer);
 
         } catch (Exception e) {
 
@@ -302,7 +275,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
             e.printStackTrace();
         }
 
-        return finishedUploaded;
+        return true;
     }
 
     public synchronized boolean createDirectory(String filePathOnServer) throws RemoteException, IOException {

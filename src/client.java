@@ -141,13 +141,11 @@ public class client implements Serializable {
 
         String fileName = file.getName();
 
-        String clientName = getExecutionPathOfCurrentClient();
-
         try {
 
-            boolean fileExistsAndClientIsOwner = remoteObj.handleFileCheck(fileName, clientName, filePathOnServer, fileSize);
+            boolean fileExistsAndClientIsOwner = remoteObj.handleFileCheck(fileName, executionPathOnClient, filePathOnServer, fileSize);
 
-            long filePos = remoteObj.handlePrepareUpload(fileName, clientName, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
+            long filePos = remoteObj.handlePrepareUpload(fileName, executionPathOnClient, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
 
             if(filePos > 0){
 
@@ -166,6 +164,7 @@ public class client implements Serializable {
             int read = 0;
             int remaining = Math.toIntExact(fileSize);
             byte[] buffer = new byte[1024];
+            int count = 0;
 
             while((read = raf.read(buffer, 0, Math.min(buffer.length, remaining))) > 0){
                 filePosition += read;
@@ -175,12 +174,9 @@ public class client implements Serializable {
                         + (int)((double)(filePosition)/fileSize * 100)
                         + "%");
 
-                //need to figure out what to do with filePos
-                boolean bufferUploadedToServer = remoteObj.upload(buffer, fileName, clientName, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
-
-                if(!bufferUploadedToServer){
-                    System.out.println("Server failed to upload all buffers.");
-                }
+                remoteObj.upload(buffer, fileName, executionPathOnClient, filePathOnServer, fileSize, fileExistsAndClientIsOwner, count);
+                count++;
+                System.out.println("Count: " + count);
             }
 
             if(filePosition >= fileSize){
