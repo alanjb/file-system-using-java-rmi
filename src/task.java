@@ -185,25 +185,32 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     private boolean searchForUnfinishedFileInStorage(String filePath, String clientName) throws IOException, ClassNotFoundException {
+
         String executionPath = System.getProperty("user.dir");
+
         File storageFile = new File(executionPath + File.separator + "unfinishedFiles.txt");
 
         boolean unfinishedFileExistsForCurrentClient = false;
+
         String fullPath = executionPath + filePath;
 
         System.out.println("Full Path: " + fullPath);
 
         FileInputStream fis = new FileInputStream(storageFile);
+
         ObjectInputStream ois = new ObjectInputStream(fis);
 
         try {
+
             if (storageFile.exists()) {
+
                 System.out.println("Storage file exists...CHECK IF FILE EXISTS");
 
                 @SuppressWarnings("unchecked")
                 HashMap<String, String> hashmap = (HashMap<String, String>) ois.readObject();
 
                 if (hashmap.containsKey(fullPath)) {
+
                     System.out.println("This path has an unfinished upload on server...Checking if client is owner...");
 
                     String client = hashmap.get(fullPath);
@@ -211,28 +218,41 @@ public class task extends UnicastRemoteObject implements service, Serializable {
                     System.out.println("Client value: " + client + " ||| Client name: " + clientName);
 
                     if(client.equalsIgnoreCase(clientName)){
+
                         System.out.println("FileName does exist in hashmap and client matches...");
+
                         unfinishedFileExistsForCurrentClient = true;
 
                         System.out.println("UNFINISHED FILES LIST: " + "\n");
 
                         for(Map.Entry<String,String> m : hashmap.entrySet()){
+
                             System.out.println(m.getKey()+" : "+m.getValue());
+
                         }
+
                     } else {
                         //equals file path but not client
+
                         System.out.println("Same file path but different client uploaded. Replacing file with new upload from this client...");
+
                         unfinishedFileExistsForCurrentClient = false;
+
                         removeFromHashMap(filePath, clientName);
                     }
+
                 } else {
+
                     System.out.println("FileName does not exist in hashmap");
+
                     unfinishedFileExistsForCurrentClient = false;
                 }
             }
 
         } catch (Exception e) {
+
             System.out.println("There was an error finding the storage file: " +  "\n");
+
             e.printStackTrace();
         }
 
@@ -240,14 +260,19 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     public synchronized boolean handleFileCheck(String fileName, String clientName, String filePathOnServer, long fileSize) throws IOException, ClassNotFoundException {
+
         String executionPath = System.getProperty("user.dir");
+
         String path = executionPath + File.separator + filePathOnServer;
 
         System.out.println("Now checking if storage file exists: " + path);
+
         boolean storageFileExists = checkIfFileStorageExists();
 
         if(!storageFileExists){
+
             System.out.println("No storage file...creating...");
+
             createStorageFile();
         }
 
@@ -255,9 +280,13 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     public synchronized long handlePrepareUpload(String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner) throws IOException, ClassNotFoundException {
+
         long pos = 0;
+
         String executionPath = System.getProperty("user.dir");
+
         String path = executionPath + File.separator + filePathOnServer;
+
         File file = new File(path);
 
         if(!fileExistsAndClientIsOwner){
