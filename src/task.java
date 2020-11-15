@@ -12,11 +12,15 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     private static String getExecutionPathOfCurrentClient(){
+
         String executionPath = null;
 
         try {
+
             executionPath = System.getProperty("user.dir");
+
         } catch(Exception e){
+
             e.printStackTrace();
         }
 
@@ -24,6 +28,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     private boolean checkIfFileStorageExists(){
+
         String executionPath = System.getProperty("user.dir");
 
         boolean exists;
@@ -32,19 +37,23 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
         exists = file.exists();
 
-        System.out.println("EXISTS ====>  " + exists);
+        System.out.println("File exists in storage:  " + exists);
 
         return exists;
     }
 
     private void createStorageFile() throws IOException {
-        //get server
+
         String serverExecutionPath = null;
 
         try {
+
             serverExecutionPath = System.getProperty("user.dir");
+
             System.out.print("Executing at => " + serverExecutionPath.replace("\\", "/"));
+
         } catch(Exception e){
+
             e.printStackTrace();
         }
 
@@ -55,12 +64,15 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         try {
             //needs to be synchronized because we don't want more than one thread trying to create this file
             synchronized (storageFile){
+
                 FileOutputStream fos = new FileOutputStream(storageFile);
+
                 ObjectOutputStream oos = new ObjectOutputStream(fos);
 
                 FileLock lock = fos.getChannel().lock();
 
                 if (fileCreated) {
+
                     System.out.println("Storage file created: " + storageFile.getName());
 
                     //create new HashMap and write to text file
@@ -70,11 +82,15 @@ public class task extends UnicastRemoteObject implements service, Serializable {
                 }
 
                 lock.release();
+
                 fos.close();
+
                 oos.close();
             }
         } catch (IOException e) {
+
             System.out.println("An error occurred trying to create storage file.");
+
             e.printStackTrace();
         }
     }
@@ -119,11 +135,15 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     private void updateHashMap(String filePath, String clientName) throws IOException, ClassNotFoundException  {
+
         String executionPath = System.getProperty("user.dir");
+
         File storageFile = new File(executionPath + File.separator + "unfinishedFiles.txt");
 
         try  {
+
             FileInputStream fis = new FileInputStream(storageFile);
+
             ObjectInputStream ois = new ObjectInputStream(fis);
 
             @SuppressWarnings("unchecked")
@@ -134,6 +154,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
             map.put(fullPath, clientName);
 
             ois.close();
+
             fis.close();
 
             System.out.println("Added " + fullPath + " | " + clientName + " to storage");
@@ -141,20 +162,24 @@ public class task extends UnicastRemoteObject implements service, Serializable {
             System.out.println("UNFINISHED FILES LIST: " + "\n");
 
             for(Map.Entry<String,String> m : map.entrySet()){
+
                 System.out.println(m.getKey()+" : "+m.getValue());
             }
 
             System.out.println("\n");
 
             FileOutputStream fos = new FileOutputStream(storageFile);
+
             ObjectOutputStream oos = new ObjectOutputStream(fos);
 
             oos.writeObject(map);
 
             fos.close();
+
             oos.close();
 
         } catch (Exception e) {
+
             e.printStackTrace();
         }
     }
