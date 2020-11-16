@@ -98,21 +98,25 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     private void removeFromHashMap(String filePath, String clientName) throws FileNotFoundException {
+
         String executionPath = System.getProperty("user.dir");
+
         File storageFile = new File(executionPath + File.separator + "unfinishedFiles.txt");
 
         try  {
             FileInputStream fis = new FileInputStream(storageFile);
+
             ObjectInputStream ois = new ObjectInputStream(fis);
 
             @SuppressWarnings("unchecked")
             HashMap<String, String> map = (HashMap<String, String>) ois.readObject();
 
-            String fullPath = executionPath + filePath;
+            String fullPath = executionPath + File.separator + filePath;
 
             map.remove(fullPath, clientName);
 
             ois.close();
+
             fis.close();
 
             System.out.println("Deleted " + fullPath + " | " + clientName + " from storage" + "\n");
@@ -120,23 +124,27 @@ public class task extends UnicastRemoteObject implements service, Serializable {
             System.out.println("UNFINISHED FILES LIST AFTER DELETE: " + "\n");
 
             for(Map.Entry<String,String> m : map.entrySet()){
+
                 System.out.println(m.getKey()+" : "+m.getValue());
             }
 
             FileOutputStream fos = new FileOutputStream(storageFile);
+
             ObjectOutputStream oos = new ObjectOutputStream(fos);
 
             oos.writeObject(map);
 
             fos.close();
+
             oos.close();
 
         } catch (Exception e) {
+
             e.printStackTrace();
         }
     }
 
-    private void updateHashMap(String filePath, String clientName) throws IOException, ClassNotFoundException  {
+    private void updateHashMap(String filePathOnServer, String clientName) throws IOException, ClassNotFoundException  {
 
         String executionPath = System.getProperty("user.dir");
 
@@ -151,7 +159,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
             @SuppressWarnings("unchecked")
             HashMap<String, String> map = (HashMap<String, String>) ois.readObject();
 
-            String fullPath = executionPath + filePath;
+            String fullPath = executionPath + File.separator + filePathOnServer;
 
             map.put(fullPath, clientName);
 
@@ -329,14 +337,11 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
             if(file.length() >= fileSize){
 
-                System.out.println("\n File Upload Complete");
+                System.out.println("File Upload Complete");
 
                 //remove from hashmap since the file completed
                 removeFromHashMap(filePathOnServer, clientName);
 
-            } else {
-
-                System.out.println("\n There was an interruption when uploading file. Please retry to complete.");
             }
 
         } catch (Exception e) {
