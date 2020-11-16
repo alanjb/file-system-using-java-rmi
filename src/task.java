@@ -234,7 +234,6 @@ public class task extends UnicastRemoteObject implements service, Serializable {
                         }
 
                     } else {
-                        //equals file path but not client
 
                         System.out.println("Same file path but different client uploaded. Replacing file with new upload from this client...");
 
