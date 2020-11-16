@@ -341,10 +341,13 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
 
+        final int bufferSize = 1024;
+
         try {
 
-            raf.seek(1024 * count);
+            raf.seek(bufferSize * count);
 
+            //TODO: how to determine if write was completed to send back if failure occurs on server.
             raf.write(buffer);
 
             if(file.length() >= fileSize){
