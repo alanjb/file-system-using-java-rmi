@@ -5,7 +5,7 @@ public interface service extends Remote {
 
     boolean handleFileCheck(String clientName, String filePathOnServer) throws RemoteException, IOException, ClassNotFoundException;
 
-    long handlePrepareUpload(String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner) throws RemoteException, IOException, ClassNotFoundException;
+    long[] handlePrepareUpload(String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner) throws RemoteException, IOException, ClassNotFoundException;
 
     boolean upload(byte[] buffer, String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner, int count) throws RemoteException, IOException;
 

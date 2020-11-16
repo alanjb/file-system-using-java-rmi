@@ -174,17 +174,21 @@ public class client implements Serializable {
 
             boolean fileExistsAndClientIsOwner = remoteObj.handleFileCheck(executionPathOnClient, filePathOnServer);
 
-            long counter = remoteObj.handlePrepareUpload(fileName, executionPathOnClient, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
+            long[] fileInfoArray = remoteObj.handlePrepareUpload(fileName, executionPathOnClient, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
 
-            if(counter > 0){
+            long newFilePosition = fileInfoArray[0];
+
+            long newCounter = fileInfoArray[1];
+
+            if(newCounter > 0 && newFilePosition > 0){
 
                 System.out.println("Resuming upload for file: " + fileName);
 
-                System.out.println("Counter: " + counter);
+                raf.seek(newCounter * bufferSize);
 
-                raf.seek(counter * bufferSize);
+                count = (int) newCounter;
 
-                count = (int) counter;
+                filePosition = newFilePosition;
 
             } else {
 

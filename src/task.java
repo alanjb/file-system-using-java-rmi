@@ -202,9 +202,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
         boolean unfinishedFileExistsForCurrentClient = false;
 
-        String fullPath = executionPath + filePath;
-
-        System.out.println("Full Path: " + fullPath);
+        String fullPath = executionPath + File.separator + filePath;
 
         FileInputStream fis = new FileInputStream(storageFile);
 
@@ -243,7 +241,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
                     } else {
 
-                        System.out.println("Same file path but different client uploaded. Replacing file with new upload from this client...");
+                        System.out.println("Same file path but different client uploading. Replacing file with new upload from this client...");
 
                         unfinishedFileExistsForCurrentClient = false;
 
@@ -288,9 +286,17 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         return searchForUnfinishedFileInStorage(filePathOnServer, clientName);
     }
 
-    public synchronized long handlePrepareUpload(String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner) throws IOException, ClassNotFoundException {
+    public synchronized long[] handlePrepareUpload(String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner) throws IOException, ClassNotFoundException {
 
         long counter = 0;
+
+        long position = 0;
+
+        long[]fileInfoArray = new long[2];
+
+        fileInfoArray[0] = counter;
+
+        fileInfoArray[1] = position;
 
         int bufferSize = 1024;
 
@@ -313,12 +319,18 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
             long filePos = file.length();
 
+            fileInfoArray[0] = filePos;
+
             counter = filePos / bufferSize;
+
+            fileInfoArray[1] = counter;
+
+            System.out.println("Current position of file on server: " + filePos);
 
             System.out.println("Current counter of file on server: " + counter);
         }
 
-        return counter;
+        return fileInfoArray;
     }
 
     public synchronized boolean upload(byte[] buffer, String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner, int count) throws RemoteException, IOException {
