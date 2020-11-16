@@ -160,27 +160,31 @@ public class client implements Serializable {
 
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
 
+        String fileName = file.getName();
+
         long filePosition = 0;
 
         long fileSize = file.length();
 
-        String fileName = file.getName();
+        int count = 0;
+
+        int bufferSize = 1024;
 
         try {
 
-            boolean fileExistsAndClientIsOwner = remoteObj.handleFileCheck(fileName, executionPathOnClient, filePathOnServer, fileSize);
+            boolean fileExistsAndClientIsOwner = remoteObj.handleFileCheck(executionPathOnClient, filePathOnServer);
 
-            long filePos = remoteObj.handlePrepareUpload(fileName, executionPathOnClient, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
+            long counter = remoteObj.handlePrepareUpload(fileName, executionPathOnClient, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
 
-            if(filePos > 0){
+            if(counter > 0){
 
                 System.out.println("Resuming upload for file: " + fileName);
 
-                System.out.println("File position: " + filePos);
+                System.out.println("Counter: " + counter);
 
-                raf.seek(filePos);
+                raf.seek(counter * bufferSize);
 
-                filePosition = filePos;
+                count = (int) counter;
 
             } else {
 
@@ -191,9 +195,7 @@ public class client implements Serializable {
 
             int remaining = Math.toIntExact(fileSize);
 
-            byte[] buffer = new byte[1024];
-
-            int count = 0;
+            byte[] buffer = new byte[bufferSize];
 
             while((read = raf.read(buffer, 0, Math.min(buffer.length, remaining))) > 0){
 
@@ -212,16 +214,20 @@ public class client implements Serializable {
             }
 
             if(filePosition >= fileSize){
+
                 System.out.print(
                         "\r Uploading file...100%"
                 );
+
                 System.out.println("\n\n File Upload Complete");
             }
 
             raf.close();
 
         } catch(Exception e){
+
             System.out.println("There was an interruption when uploading file. Please retry to complete \n.");
+
             e.printStackTrace();
         }
     }

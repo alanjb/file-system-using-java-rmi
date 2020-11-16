@@ -27,7 +27,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         return executionPath;
     }
 
-    private boolean checkIfFileStorageExists(){
+    private synchronized boolean checkIfFileStorageExists(){
 
         String executionPath = System.getProperty("user.dir");
 
@@ -42,7 +42,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         return exists;
     }
 
-    private void createStorageFile() throws IOException {
+    private synchronized void createStorageFile() throws IOException {
 
         String serverExecutionPath = null;
 
@@ -62,6 +62,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         boolean fileCreated = storageFile.createNewFile();
 
         try {
+
             //needs to be synchronized because we don't want more than one thread trying to create this file
             synchronized (storageFile){
 
@@ -87,9 +88,10 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
                 oos.close();
             }
+
         } catch (IOException e) {
 
-            System.out.println("An error occurred trying to create storage file.");
+            System.out.println("An error occurred trying to create storage file: ");
 
             e.printStackTrace();
         }
@@ -259,7 +261,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         return unfinishedFileExistsForCurrentClient;
     }
 
-    public synchronized boolean handleFileCheck(String fileName, String clientName, String filePathOnServer, long fileSize) throws IOException, ClassNotFoundException {
+    public synchronized boolean handleFileCheck(String clientName, String filePathOnServer) throws IOException, ClassNotFoundException {
 
         String executionPath = System.getProperty("user.dir");
 
@@ -281,7 +283,9 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
     public synchronized long handlePrepareUpload(String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner) throws IOException, ClassNotFoundException {
 
-        long pos = 0;
+        long counter = 0;
+
+        int bufferSize = 1024;
 
         String executionPath = System.getProperty("user.dir");
 
@@ -291,23 +295,23 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
         if(!fileExistsAndClientIsOwner){
 
-            System.out.println("Adding new file to hashmap in case of crash...");
+            System.out.println("Adding new file to hashmap in case of network, server or client crash...");
 
             //add entry into hash map with new client to upload new file or replace file
             updateHashMap(filePathOnServer, clientName);
 
         } else {
 
-            System.out.println("***You are owner of unfinished file. Sending file position back to client to resume upload***");
+            System.out.println("You are owner of this unfinished file. Sending counter position back to client to resume upload...");
 
             long filePos = file.length();
 
-            pos = filePos;
+            counter = filePos / bufferSize;
 
-            System.out.println("Current position of file on server: " + filePos);
+            System.out.println("Current counter of file on server: " + counter);
         }
 
-        return pos;
+        return counter;
     }
 
     public synchronized boolean upload(byte[] buffer, String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner, int count) throws RemoteException, IOException {
@@ -324,6 +328,17 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
             raf.write(buffer);
 
+            if(file.length() >= fileSize){
+
+                System.out.println("\n File Upload Complete");
+
+                //remove from hashmap since the file completed
+                removeFromHashMap(filePathOnServer, clientName);
+
+            } else {
+
+                System.out.println("\n There was an interruption when uploading file. Please retry to complete.");
+            }
 
         } catch (Exception e) {
 
