@@ -33,6 +33,7 @@ public class client implements Serializable {
                     System.exit(1);
 
                 }
+
             } else {
 
                 System.out.println("PA1_SERVER environment variable not set...");
@@ -45,25 +46,8 @@ public class client implements Serializable {
         }
     }
 
-    private static String getExecutionPathOfCurrentClient(){
-
-        String executionPath = null;
-
-        try {
-
-            executionPath = System.getProperty("user.dir");
-
-        } catch(Exception e){
-
-            System.out.println("There was an error getting execution for this system.");
-
-            e.printStackTrace();
-        }
-
-        return executionPath;
-    }
-
     private static void runCommand(service remoteObj, String[] args) throws IOException {
+
         String userCommand = args[0];
 
         try {
@@ -124,30 +108,6 @@ public class client implements Serializable {
 
         } catch (Exception e) {
 
-            e.printStackTrace();
-        }
-    }
-
-    private static void shutdown(service remoteObj) throws IOException {
-
-        System.out.println("Shutting down server...");
-
-        remoteObj.shutdown();
-    }
-
-    private static void removeFile(service remoteObj, String filePathOnServer) throws IOException, FileNotFoundException {
-
-        boolean fileExists = remoteObj.removeFile(filePathOnServer);
-
-        try {
-            //if file exists on server
-            if (!fileExists) {
-                System.err.println("404 ERROR: File does not exist on server. Please try again.");
-            } else {
-                System.out.println(filePathOnServer + " has been removed.");
-            }
-        }
-        catch(Exception e){
             e.printStackTrace();
         }
     }
@@ -236,10 +196,32 @@ public class client implements Serializable {
         }
     }
 
+    private static void removeFile(service remoteObj, String filePathOnServer) throws IOException, FileNotFoundException {
+
+        boolean fileExists = remoteObj.removeFile(filePathOnServer);
+
+        try {
+
+            if (!fileExists) {
+
+                System.err.println("404 ERROR: File does not exist on server. Please try again.");
+
+            } else {
+
+                System.out.println(filePathOnServer + " has been removed.");
+            }
+        }
+        catch(Exception e){
+
+            e.printStackTrace();
+        }
+    }
+
     private static void rmdir(service remoteObj, String filePathOnServer) throws IOException {
 
         try {
-            System.out.println("Sending request to remove directory ...");
+
+            System.out.println("Sending request to remove directory: " + filePathOnServer);
 
             boolean wasRemoved = remoteObj.removeDirectory(filePathOnServer);
 
@@ -264,9 +246,8 @@ public class client implements Serializable {
 
         try {
 
-            System.out.println("Retrieving directory items...");
+            System.out.println("Retrieving directory items for " + filePathOnServer);
 
-            //call remoteObj listDirectoryItems method
             String[] list = remoteObj.listDirectoryItems(filePathOnServer);
 
             System.out.println("Directory items in " + filePathOnServer + ": \n\n");
@@ -302,5 +283,30 @@ public class client implements Serializable {
 
             System.out.println("ERROR: " + e.getMessage());
         }
+    }
+
+    private static void shutdown(service remoteObj) throws IOException {
+
+        System.out.println("Shutting down server...");
+
+        remoteObj.shutdown();
+    }
+
+    private static String getExecutionPathOfCurrentClient(){
+
+        String executionPath = null;
+
+        try {
+
+            executionPath = System.getProperty("user.dir");
+
+        } catch(Exception e){
+
+            System.out.println("There was an error getting execution for this system.");
+
+            e.printStackTrace();
+        }
+
+        return executionPath;
     }
 }
