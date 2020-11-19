@@ -1,5 +1,4 @@
 import java.io.*;
-import java.nio.channels.FileLock;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.util.HashMap;
@@ -42,7 +41,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         return exists;
     }
 
-    private synchronized void createStorageFile() throws IOException {
+    private void createStorageFile() throws IOException {
 
         String serverExecutionPath = null;
 
@@ -63,31 +62,24 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
         try {
 
-            //needs to be synchronized because we don't want more than one thread trying to create this file
-            synchronized (storageFile){
+            FileOutputStream fos = new FileOutputStream(storageFile);
 
-                FileOutputStream fos = new FileOutputStream(storageFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
 
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
+            if (fileCreated) {
 
-                FileLock lock = fos.getChannel().lock();
+                System.out.println("Storage file created: " + storageFile.getName());
 
-                if (fileCreated) {
+                //create new HashMap and write to text file
+                HashMap<String, String> map = new HashMap<>();
 
-                    System.out.println("Storage file created: " + storageFile.getName());
-
-                    //create new HashMap and write to text file
-                    HashMap<String, String> map = new HashMap<>();
-
-                    oos.writeObject(map);
-                }
-
-                lock.release();
-
-                fos.close();
-
-                oos.close();
+                oos.writeObject(map);
             }
+
+            fos.close();
+
+            oos.close();
+
 
         } catch (IOException e) {
 
@@ -321,7 +313,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
             fileInfoArray[0] = filePos;
 
-            counter = filePos / bufferSize;
+            counter = (filePos / bufferSize);
 
             fileInfoArray[1] = counter;
 
