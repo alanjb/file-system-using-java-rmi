@@ -21,7 +21,7 @@ public interface service extends Remote {
 
     boolean removeDirectory(String existingFilePathOnServer) throws RemoteException, IOException;
 
-    String[] listDirectoryItems(String filePathOnServer) throws RemoteException, IOException;
+    Object[] listDirectoryItems(String filePathOnServer) throws RemoteException, IOException;
 
     long getFileSize(String filePathOnServer) throws RemoteException, IOException;
 }

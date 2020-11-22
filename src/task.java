@@ -1,6 +1,7 @@
 import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -396,22 +397,29 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         return wasRemoved;
     }
 
-    public synchronized String[] listDirectoryItems(String existingFilePathOnServer) throws RemoteException, IOException {
-
-        File serverPathDirectory = new File(existingFilePathOnServer);
+    public synchronized Object[] listDirectoryItems(String existingFilePathOnServer) throws RemoteException, IOException {
+        String executionPath = getExecutionPathOfServer();
+        File directoryToSend = new File(executionPath + File.separator + existingFilePathOnServer);
+        Object[] data = new Object[2];
 
         try {
-
             System.out.println("Retrieving directories and files within: " + existingFilePathOnServer);
 
+            if(directoryToSend.isDirectory()){
+                data[0] = true;
+                File[] dir = directoryToSend.listFiles();
+                data[1] = Arrays.toString(dir);
+            } else {
+                data[0] = false;
+            }
         } catch(Exception e){
             e.printStackTrace();
         }
 
-        return serverPathDirectory.list();
+        return data;
     }
 
-    public void shutdown()throws RemoteException, IOException {
+    public void shutdown() throws RemoteException, IOException {
         System.out.println("Shutting down server...goodbye.");
         System.exit(0);
     }

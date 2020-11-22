@@ -223,11 +223,16 @@ public class client implements Serializable {
     private static void dir(service remoteObj, String filePathOnServer) {
         try {
             System.out.println("Retrieving directory items for " + filePathOnServer);
-            String[] list = remoteObj.listDirectoryItems(filePathOnServer);
-            System.out.println("Directory items in " + filePathOnServer + ": \n\n");
+            Object[] data = remoteObj.listDirectoryItems(filePathOnServer);
 
-            for (String s : list) {
-                System.out.println(s);
+            boolean directoryExists = (boolean) data[0];
+
+            if(directoryExists){
+                System.out.println("Directory items in " + filePathOnServer + ": \n\n");
+                String list = (String) data[1];
+                System.out.println(list);
+            } else {
+                System.out.println("500 ERROR: Directory does not exist");
             }
 
         } catch (Exception e) {
