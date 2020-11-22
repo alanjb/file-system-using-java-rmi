@@ -1,5 +1,7 @@
 import java.io.*;
 import java.rmi.*;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.*;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -340,24 +342,16 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
     public synchronized boolean removeFile(String existingFilePathOnServer) throws RemoteException, IOException {
         String executionPath = getExecutionPathOfServer();
-
         boolean wasRemoved = false;
-
         File file = new File(executionPath + File.separator + existingFilePathOnServer);
 
         try {
-
             if(file.exists()){
-
                 if(file.delete()){
-
                     wasRemoved = true;
-
                     System.out.println("File deleted: " + file.getAbsolutePath());
                 }
-
             } else {
-
                 System.out.println("There was an error. No such file exists.");
             }
         } catch(Exception e){
@@ -419,8 +413,12 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         return data;
     }
 
-    public void shutdown() throws RemoteException, IOException {
+    public void shutdown() throws RemoteException, IOException, NotBoundException {
         System.out.println("Shutting down server...goodbye.");
+
+        Registry registry = LocateRegistry.getRegistry(8000);
+        registry.unbind("remoteObject");
+        UnicastRemoteObject.unexportObject(registry, true);
         System.exit(0);
     }
 }

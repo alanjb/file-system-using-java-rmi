@@ -13,7 +13,7 @@ public interface service extends Remote {
 
     boolean checkIfFileExistsOnServer(String filePathOnServer) throws RemoteException, IOException;
 
-    void shutdown() throws RemoteException, IOException;
+    void shutdown() throws RemoteException, IOException, NotBoundException;
 
     boolean createDirectory(String filePathOnServer) throws RemoteException, IOException;
 
