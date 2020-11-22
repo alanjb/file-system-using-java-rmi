@@ -9,6 +9,10 @@ public interface service extends Remote {
 
     boolean upload(byte[] buffer, String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner, int count) throws RemoteException, IOException;
 
+    Object[] download(String filePathOnServer, int counter) throws RemoteException, IOException;
+
+    boolean checkIfFileExistsOnServer(String filePathOnServer) throws RemoteException, IOException;
+
     void shutdown() throws RemoteException, IOException;
 
     boolean createDirectory(String filePathOnServer) throws RemoteException, IOException;

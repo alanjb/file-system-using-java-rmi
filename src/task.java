@@ -10,7 +10,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         super();
     }
 
-    private static String getExecutionPathOfCurrentClient(){
+    private static String getExecutionPathOfServer(){
 
         String executionPath = null;
 
@@ -363,9 +363,73 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         return true;
     }
 
+    public synchronized Object[] download(String filePathOnServer, int counter) throws FileNotFoundException {
+
+        System.out.println("Calling download: " + counter);
+
+        String executionPathOnServer = getExecutionPathOfServer();
+
+        File file = new File(executionPathOnServer + File.separator + filePathOnServer);
+
+        RandomAccessFile raf = new RandomAccessFile(file, "rw");
+
+        long fileSize = file.length();
+
+        int count = 0;
+
+        final int bufferSize = 1024;
+
+        Object[] data = new Object[2];
+
+        try {
+
+//            int remaining = Math.toIntExact(fileSize);
+
+            byte[] buffer = new byte[bufferSize];
+
+            raf.seek(bufferSize * counter);
+
+            raf.read(buffer,0,bufferSize);
+
+            data[0] = buffer;
+
+            data[1] = count;
+
+            raf.close();
+
+        } catch(Exception e){
+
+            System.out.println("There was an interruption when uploading file. Please retry to complete \n.");
+
+            e.printStackTrace();
+        }
+
+        return data;
+    }
+
+//    public long getFileSize(){
+//
+//    }
+
+    public synchronized boolean checkIfFileExistsOnServer(String filePathOnServer){
+        String executionPath = getExecutionPathOfServer();
+        File file = new File(executionPath + File.separator + filePathOnServer);
+        boolean doesExistOnServer = false;
+
+        try {
+            if(file.exists()){
+                doesExistOnServer = true;
+            }
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+
+        return doesExistOnServer;
+    }
+
     public synchronized boolean createDirectory(String filePathOnServer) throws RemoteException, IOException {
         System.out.println("Where to create this dir: " + filePathOnServer);
-        String executionPath = getExecutionPathOfCurrentClient();
+        String executionPath = getExecutionPathOfServer();
         boolean wasCreated = false;
 
         try {
@@ -393,7 +457,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     public synchronized boolean removeFile(String existingFilePathOnServer) throws RemoteException, IOException {
-        String executionPath = getExecutionPathOfCurrentClient();
+        String executionPath = getExecutionPathOfServer();
 
         boolean wasRemoved = false;
 
@@ -423,7 +487,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     public synchronized boolean removeDirectory(String existingFilePathOnServer) throws RemoteException, IOException {
-        String executionPath = getExecutionPathOfCurrentClient();
+        String executionPath = getExecutionPathOfServer();
         boolean wasRemoved = false;
 
         try{

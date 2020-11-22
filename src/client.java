@@ -65,7 +65,7 @@ public class client implements Serializable {
 
                     System.out.println("Download: Calling server to retrieve file...");
 
-                    //download(remoteObj, args[1], args[2]);
+                    download(remoteObj, args[1], args[2]);
                 }
 
                 case "dir" -> {
@@ -192,6 +192,76 @@ public class client implements Serializable {
 
             System.out.println("There was an interruption when uploading file. Please retry to complete \n.");
 
+            e.printStackTrace();
+        }
+    }
+
+    private static void download(service remoteObj, String filePathOnServer, String filePathOnClient){
+        try {
+            //send file path on server to check if it exists before anything can be done
+            boolean fileExists = remoteObj.checkIfFileExistsOnServer(filePathOnServer);
+
+            if(fileExists){
+                //can start download
+
+                String executionPathOnClient = getExecutionPathOfCurrentClient();
+
+                File file = new File(executionPathOnClient + File.separator + filePathOnClient);
+
+                //checking if user already started a download or has this file on the machine
+                if(file.exists()){
+
+                    System.out.println("File exists on client: " + filePathOnServer + "...Resuming download...");
+
+                } else {
+
+                    System.out.println("Starting new download for " + filePathOnServer + "...");
+
+                    try {
+
+                        RandomAccessFile raf = new RandomAccessFile(file, "rw");
+
+                        final int bufferSize = 1024;
+
+                        long fileSize = file.length();
+
+                        long filePosition = 0;
+
+                        int counter = 0;
+
+                        int totalCount = (int) (97257609/bufferSize);
+
+                        System.out.println("Total Count: " + totalCount);
+
+                        while(counter < totalCount){
+
+
+                            System.out.print(
+                                    "\r Downloading file..."
+                                            + (int) ((double) (counter) / totalCount * 100)
+                                            + "%");
+
+                            Object[] data = remoteObj.download(filePathOnServer, counter);
+
+                            byte [] buf = (byte[]) data[0];
+
+                            raf.seek(bufferSize * counter);
+
+                            raf.write(buf);
+
+                            counter++;
+                        }
+
+                    } catch(Exception e){
+                        e.printStackTrace();
+                    }
+                }
+
+            } else {
+                System.out.println("500 ERROR: Could not find file to download on server.");
+            }
+
+        } catch(Exception e){
             e.printStackTrace();
         }
     }
