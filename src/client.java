@@ -186,47 +186,36 @@ public class client implements Serializable {
     }
 
     private static void removeFile(service remoteObj, String filePathOnServer) throws IOException, FileNotFoundException {
-
         boolean fileExists = remoteObj.removeFile(filePathOnServer);
 
         try {
-
             if (!fileExists) {
-
                 System.err.println("404 ERROR: File does not exist on server. Please try again.");
 
             } else {
-
                 System.out.println(filePathOnServer + " has been removed.");
             }
         }
-        catch(Exception e){
 
+        catch(Exception e){
             e.printStackTrace();
         }
     }
 
     private static void rmdir(service remoteObj, String filePathOnServer) throws IOException {
-
         try {
-
             System.out.println("Sending request to remove directory: " + filePathOnServer);
-
             boolean wasRemoved = remoteObj.removeDirectory(filePathOnServer);
 
             if(wasRemoved){
-
                 System.out.println("SUCCESS! The directory was removed at..." + filePathOnServer);
 
             } else {
-
                 System.err.println("404 ERROR: Directory could not be removed. Please try again");
             }
 
         } catch(Exception e){
-
             System.err.println("404 ERROR: There was an error trying to remove the directory.");
-
             e.printStackTrace();
         }
     }
@@ -247,29 +236,28 @@ public class client implements Serializable {
     }
 
     private static void mkdir(service remoteObj, String filePathOnServer) throws IOException {
-
         try {
-
             System.out.println("Sending directory creation request to server...");
-
             boolean wasRemoved = remoteObj.createDirectory(filePathOnServer);
 
             if (wasRemoved) {
-
                 System.out.println("Successfully created directory at: " + filePathOnServer);
 
             } else {
-
                 System.out.println("400 ERROR: There was an issue creating directory at: " + filePathOnServer + ".  Please try again.");
             }
-        } catch (Exception e) {
 
+        } catch (Exception e) {
             System.out.println("ERROR: " + e.getMessage());
         }
     }
 
     private static void shutdown(service remoteObj) throws IOException {
-        remoteObj.shutdown();
+        try {
+            remoteObj.shutdown();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
     private static String getExecutionPathOfCurrentClient(){
