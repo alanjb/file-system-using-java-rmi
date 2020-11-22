@@ -371,8 +371,6 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
 
-        long fileSize = file.length();
-
         int count = 0;
 
         final int bufferSize = 1024;

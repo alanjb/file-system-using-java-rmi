@@ -198,8 +198,10 @@ public class client implements Serializable {
 
     private static void download(service remoteObj, String filePathOnServer, String filePathOnClient){
         try {
-            //send file path on server to check if it exists before anything can be done
             boolean fileExistsOnServer = remoteObj.checkIfFileExistsOnServer(filePathOnServer);
+            long fileSizeOnServer = remoteObj.getFileSize(filePathOnServer);
+            int counter = 0;
+            final int bufferSize = 1024;
 
             if(fileExistsOnServer){
                 //can start download
@@ -208,33 +210,33 @@ public class client implements Serializable {
 
                 File file = new File(executionPathOnClient + File.separator + filePathOnClient);
 
+                long fileSizeOnClient = file.length();
+
                 //checking if user already started a download or has this file on the machine
-                if(file.exists()){
+                if(file.exists() && (file.length() < fileSizeOnServer)){
 
-                    System.out.println("File exists on client: " + filePathOnServer + "...Resuming download...");
+                    System.out.println("Incomplete file exists on client: " + filePathOnServer + "...Resuming download...");
 
-                    //get current fileSize here then calculate where to start
+                    int newCounter = (int) (fileSizeOnClient/bufferSize);
 
+                    System.out.println("new counter: " + newCounter);
+
+                    counter = newCounter;
 
                 } else {
 
                     System.out.println("Starting new download for " + filePathOnServer + "...");
+                }
 
                     try {
 
                         RandomAccessFile raf = new RandomAccessFile(file, "rw");
 
-                        final int bufferSize = 1024;
-
-                        long fileSize = remoteObj.getFileSize(filePathOnServer);
-
-                        int counter = 0;
-
-                        int totalCount = (int) (fileSize/bufferSize);
+                        int totalCount = (int) (fileSizeOnServer/bufferSize);
 
                         System.out.println("Total Count: " + totalCount);
 
-                        while(counter < totalCount){
+                        while(counter <= totalCount){
 
                             System.out.print(
                                     "\r Downloading file..."
@@ -250,16 +252,14 @@ public class client implements Serializable {
                             raf.write(buf);
 
                             counter++;
+
                         }
 
-                        if(counter == totalCount){
-                            System.out.print("\r Downloading file...100% COMPLETE");
-                        }
+                        raf.close();
 
                     } catch(Exception e){
                         e.printStackTrace();
                     }
-                }
 
             } else {
                 System.out.println("500 ERROR: Could not find file to download on server.");
