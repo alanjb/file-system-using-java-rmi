@@ -528,7 +528,7 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     }
 
     public synchronized void shutdown()throws RemoteException, IOException {
-        System.out.println("Terminating program...goodbye.");
+        System.out.println("Shutting down server...goodbye.");
         System.exit(0);
     }
 }
