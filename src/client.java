@@ -133,7 +133,6 @@ public class client implements Serializable {
                 raf.seek(newCounter * bufferSize);
                 count = (int) newCounter;
                 filePosition = newFilePosition;
-
             } else {
                 System.out.println("Starting a new upload for file: " + fileName);
             }
@@ -161,9 +160,7 @@ public class client implements Serializable {
             }
             raf.close();
         } catch(Exception e){
-
             System.out.println("There was an interruption when uploading file. Please retry to complete \n.");
-
             e.printStackTrace();
         }
     }
@@ -316,17 +313,12 @@ public class client implements Serializable {
     }
 
     private static String getExecutionPathOfCurrentClient(){
-
         String executionPath = null;
 
         try {
-
             executionPath = System.getProperty("user.dir");
-
         } catch(Exception e){
-
             System.out.println("There was an error getting execution for this system.");
-
             e.printStackTrace();
         }
 
