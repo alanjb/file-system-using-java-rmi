@@ -199,9 +199,9 @@ public class client implements Serializable {
     private static void download(service remoteObj, String filePathOnServer, String filePathOnClient){
         try {
             //send file path on server to check if it exists before anything can be done
-            boolean fileExists = remoteObj.checkIfFileExistsOnServer(filePathOnServer);
+            boolean fileExistsOnServer = remoteObj.checkIfFileExistsOnServer(filePathOnServer);
 
-            if(fileExists){
+            if(fileExistsOnServer){
                 //can start download
 
                 String executionPathOnClient = getExecutionPathOfCurrentClient();
@@ -213,6 +213,9 @@ public class client implements Serializable {
 
                     System.out.println("File exists on client: " + filePathOnServer + "...Resuming download...");
 
+                    //get current fileSize here then calculate where to start
+
+
                 } else {
 
                     System.out.println("Starting new download for " + filePathOnServer + "...");
@@ -223,18 +226,15 @@ public class client implements Serializable {
 
                         final int bufferSize = 1024;
 
-                        long fileSize = file.length();
-
-                        long filePosition = 0;
+                        long fileSize = remoteObj.getFileSize(filePathOnServer);
 
                         int counter = 0;
 
-                        int totalCount = (int) (97257609/bufferSize);
+                        int totalCount = (int) (fileSize/bufferSize);
 
                         System.out.println("Total Count: " + totalCount);
 
                         while(counter < totalCount){
-
 
                             System.out.print(
                                     "\r Downloading file..."
@@ -250,6 +250,10 @@ public class client implements Serializable {
                             raf.write(buf);
 
                             counter++;
+                        }
+
+                        if(counter == totalCount){
+                            System.out.print("\r Downloading file...100% COMPLETE");
                         }
 
                     } catch(Exception e){

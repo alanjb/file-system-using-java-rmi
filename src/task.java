@@ -365,8 +365,6 @@ public class task extends UnicastRemoteObject implements service, Serializable {
 
     public synchronized Object[] download(String filePathOnServer, int counter) throws FileNotFoundException {
 
-        System.out.println("Calling download: " + counter);
-
         String executionPathOnServer = getExecutionPathOfServer();
 
         File file = new File(executionPathOnServer + File.separator + filePathOnServer);
@@ -382,8 +380,6 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         Object[] data = new Object[2];
 
         try {
-
-//            int remaining = Math.toIntExact(fileSize);
 
             byte[] buffer = new byte[bufferSize];
 
@@ -407,9 +403,12 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         return data;
     }
 
-//    public long getFileSize(){
-//
-//    }
+    public long getFileSize(String filePathOnServer){
+        String executionPath = getExecutionPathOfServer();
+        File file = new File(executionPath + File.separator + filePathOnServer);
+
+        return file.length();
+    }
 
     public synchronized boolean checkIfFileExistsOnServer(String filePathOnServer){
         String executionPath = getExecutionPathOfServer();
