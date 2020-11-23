@@ -84,54 +84,62 @@ public class client implements Serializable {
     private static void upload(service remoteObj, String filePathOnClient, String filePathOnServer) throws IOException {
         String executionPathOnClient = getExecutionPathOfCurrentClient();
         File file = new File(executionPathOnClient + File.separator + filePathOnClient);
-        RandomAccessFile raf = new RandomAccessFile(file, "rw");
-        String fileName = file.getName();
-        long filePosition = 0;
-        long fileSize = file.length();
-        int count = 0;
-        int bufferSize = 1024;
 
-        try {
-            boolean fileExistsAndClientIsOwner = remoteObj.handleFileCheck(executionPathOnClient, filePathOnServer);
-            long[] fileInfoArray = remoteObj.handlePrepareUpload(fileName, executionPathOnClient, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
-            long newFilePosition = fileInfoArray[0];
-            long newCounter = fileInfoArray[1];
+        if(!file.exists()){
+            System.out.println("404 ERROR: Cannot upload file because file does not exist on client...");
+        } else {
+            RandomAccessFile raf = new RandomAccessFile(file, "rw");
+            String fileName = file.getName();
+            long filePosition = 0;
+            long fileSize = file.length();
+            int count = 0;
+            int bufferSize = 1024;
 
-            if(newCounter > 0 && newFilePosition > 0){
-                System.out.println("Resuming upload for file: " + fileName);
-                raf.seek(newCounter * bufferSize);
-                count = (int) newCounter;
-                filePosition = newFilePosition;
-            } else {
-                System.out.println("Starting a new upload for file: " + fileName);
+            try {
+                boolean fileExistsAndClientIsOwner = remoteObj.handleFileCheck(executionPathOnClient, filePathOnServer);
+                long[] fileInfoArray = remoteObj.handlePrepareUpload(fileName, executionPathOnClient, filePathOnServer, fileSize, fileExistsAndClientIsOwner);
+                long newFilePosition = fileInfoArray[0];
+                long newCounter = fileInfoArray[1];
+
+                if(newCounter > 0 && newFilePosition > 0){
+                    System.out.println("Resuming upload for file: " + fileName);
+                    raf.seek(newCounter * bufferSize);
+                    count = (int) newCounter;
+                    filePosition = newFilePosition;
+                } else {
+                    System.out.println("Starting a new upload for file: " + fileName);
+                }
+
+                int read = 0;
+                int remaining = Math.toIntExact(fileSize);
+                byte[] buffer = new byte[bufferSize];
+
+                while((read = raf.read(buffer, 0, Math.min(buffer.length, remaining))) > 0){
+                    filePosition += read;
+                    remaining -= read;
+                    System.out.print(
+                            "\r Uploading file..."
+                                    + (int)((double)(filePosition)/fileSize * 100)
+                                    + "%");
+                    remoteObj.upload(buffer, fileName, executionPathOnClient, filePathOnServer, fileSize, fileExistsAndClientIsOwner, count);
+                    count++;
+                }
+
+                if(filePosition >= fileSize){
+                    System.out.print(
+                            "\r Uploading file...100%"
+                    );
+                    System.out.println("\n\n File Upload Complete");
+                }
+                raf.close();
+            } catch(Exception e){
+                System.out.println("There was an interruption when uploading file. Please retry to complete \n.");
+                e.printStackTrace();
             }
-
-            int read = 0;
-            int remaining = Math.toIntExact(fileSize);
-            byte[] buffer = new byte[bufferSize];
-
-            while((read = raf.read(buffer, 0, Math.min(buffer.length, remaining))) > 0){
-                filePosition += read;
-                remaining -= read;
-                System.out.print(
-                        "\r Uploading file..."
-                        + (int)((double)(filePosition)/fileSize * 100)
-                        + "%");
-                remoteObj.upload(buffer, fileName, executionPathOnClient, filePathOnServer, fileSize, fileExistsAndClientIsOwner, count);
-                count++;
-            }
-
-            if(filePosition >= fileSize){
-                System.out.print(
-                        "\r Uploading file...100%"
-                );
-                System.out.println("\n\n File Upload Complete");
-            }
-            raf.close();
-        } catch(Exception e){
-            System.out.println("There was an interruption when uploading file. Please retry to complete \n.");
-            e.printStackTrace();
         }
+
+
+
     }
 
     private static void download(service remoteObj, String filePathOnServer, String filePathOnClient){
@@ -165,8 +173,8 @@ public class client implements Serializable {
                                             + (int) ((double) (counter) / totalCount * 100)
                                             + "%");
 
-                            Object[] data = remoteObj.download(filePathOnServer, counter);
-                            byte [] buf = (byte[]) data[0];
+                            byte [] buf = remoteObj.download(filePathOnServer, counter);
+
                             raf.seek(bufferSize * counter);
                             raf.write(buf);
                             counter++;

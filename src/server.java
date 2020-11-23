@@ -23,7 +23,7 @@ public class server {
             if (args[0].equalsIgnoreCase("start") && port == 8000) {
 
                 try {
-                    task remoteObject = new task();
+                    task remoteObject = new task("rmiServer");
                     Registry registry = LocateRegistry.createRegistry(port);
                     registry.rebind("remoteObject", remoteObject);
                     System.err.println("Server added to registry on port " + port + " and listening to requests...");

@@ -9,8 +9,12 @@ import java.util.Map;
 
 public class task extends UnicastRemoteObject implements service, Serializable {
 
-    public task() throws RemoteException {
+    private final String serverName;
+
+    public task(String serverName) throws RemoteException {
         super();
+
+        this.serverName = serverName;
     }
 
     private static String getExecutionPathOfServer(){
@@ -264,28 +268,23 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         return true;
     }
 
-    public synchronized Object[] download(String filePathOnServer, int counter) throws FileNotFoundException {
+    public synchronized byte[] download(String filePathOnServer, int counter) throws FileNotFoundException {
         String executionPathOnServer = getExecutionPathOfServer();
         File file = new File(executionPathOnServer + File.separator + filePathOnServer);
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
-        int count = 0;
         final int bufferSize = 1024;
-        Object[] data = new Object[2];
+        byte[] buffer = new byte[bufferSize];
 
         try {
-            byte[] buffer = new byte[bufferSize];
             raf.seek(bufferSize * counter);
             raf.read(buffer,0,bufferSize);
-            data[0] = buffer;
-            data[1] = count;
             raf.close();
-
         } catch(Exception e){
             System.out.println("There was an interruption when uploading file. Please retry to complete \n.");
             e.printStackTrace();
         }
 
-        return data;
+        return buffer;
     }
 
     public long getFileSize(String filePathOnServer){
@@ -416,9 +415,13 @@ public class task extends UnicastRemoteObject implements service, Serializable {
     public void shutdown() throws RemoteException, IOException, NotBoundException {
         System.out.println("Shutting down server...goodbye.");
 
-        Registry registry = LocateRegistry.getRegistry(8000);
-        registry.unbind("remoteObject");
-        UnicastRemoteObject.unexportObject(registry, true);
-        System.exit(0);
+        try {
+            Registry reg = LocateRegistry.getRegistry(8000);
+            UnicastRemoteObject.unexportObject(this, true);
+            reg.unbind("remoteObject");
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+
     }
 }
