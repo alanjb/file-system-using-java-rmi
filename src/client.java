@@ -137,9 +137,6 @@ public class client implements Serializable {
                 e.printStackTrace();
             }
         }
-
-
-
     }
 
     private static void download(service remoteObj, String filePathOnServer, String filePathOnClient){

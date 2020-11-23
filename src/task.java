@@ -230,42 +230,29 @@ public class task extends UnicastRemoteObject implements service, Serializable {
         return fileInfoArray;
     }
 
-    public synchronized boolean upload(byte[] buffer, String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner, int count) throws RemoteException, IOException {
-
+    public synchronized void upload(byte[] buffer, String fileName, String clientName, String filePathOnServer, long fileSize, boolean fileExistsAndClientIsOwner, int count) throws RemoteException, IOException {
         String executionPath = System.getProperty("user.dir");
-
         File file = new File(executionPath + File.separator + filePathOnServer);
-
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
-
         final int bufferSize = 1024;
 
         try {
-
             raf.seek(bufferSize * count);
-
-            //TODO: how to determine if write was completed to send back if failure occurs on server.
             raf.write(buffer);
 
             if(file.length() >= fileSize){
-
                 System.out.println("File Upload Complete");
-
                 //remove from hashmap since the file completed
                 removeFromHashMap(filePathOnServer, clientName);
-
             }
 
         } catch (Exception e) {
-
             System.out.println("\n Something went wrong as the client was uploading a file.");
-
             e.printStackTrace();
         }
 
         raf.close();
 
-        return true;
     }
 
     public synchronized byte[] download(String filePathOnServer, int counter) throws FileNotFoundException {
